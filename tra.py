@@ -2,11 +2,23 @@ import time
 import json
 import RPi.GPIO as GPIO
 import datetime
+import urllib3
+import config
 
 
 
+'''****************************************************************************************
+HCP services Variables
+****************************************************************************************'''
+http = urllib3.PoolManager()
+headers = urllib3.util.make_headers(user_agent=None)
+headers['Authorization'] = 'Bearer ' + config.oauth_credentials_for_device
+headers['Content-Type'] = 'application/json;charset=utf-8'
 
 
+'''****************************************************************************************
+Pin Configurations
+****************************************************************************************'''
 TRIG = 5 # Broadcom pin 18 (P1 pin 12)                                          
 ECHO = 6 # Broadcom pin 23 (P1 pin 16)                                          
 LIDCOVER = 15
@@ -59,6 +71,7 @@ def distanceMeasurement():
 				GPIO.output(TRIG, True)
 				time.sleep(0.00001)
 				GPIO.output(TRIG, False)
+				print(1)
 				#Starts the timer 
 				while GPIO.input(ECHO)==0:
 					pulse_start = time.time()
@@ -69,9 +82,15 @@ def distanceMeasurement():
 				l_distance = pulse_duration * 17150
 				l_distance = round(l_distance, 2)
 				currentDistance = l_distance
-				print(l_distance)
+				
 				distanceRecordedTime = datetime.datetime.now()
-                print(distanceRecordedTime)
+                body='{"mode":"async", "messageType":"' + str(config.message_type_id_From_device) + '", "messages":[{"timestamp":' + str(timestamp) + ', "Distance":"' + str(l_distance) + ', "ID":"' + str(1) +'"}]}'
+	
+                r = http.urlopen('POST', url, body=body, headers=headers)
+                print("send_to_hcp():" + str(r.status))
+                print(r.data)
+
+                timestamp=int(time.time())
                 if currentDistance < CRITICAL_DISTANCE:
                     GPIO.output(alarmOut,True)
                     if currentCriticalLevelFlag == False:#6.1.1
@@ -105,6 +124,4 @@ def distanceMeasurement():
 	except KeyboardInterrupt: 
 		GPIO.cleanup()
 	
-		
-if __name__ == '__main__':
-	distanceMeasurement()
+distanceMeasurement()
