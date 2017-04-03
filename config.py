@@ -8,15 +8,13 @@ hcp_landscape_host='.hanatrial.ondemand.com'
 # hcp_landscape_host='.hana.ondemand.com' # this is used on PROD
 
 # these credentials are used from applications with the "push messages to devices" API
-hcp_user_credentials='nicolas.araque@sap.com:'
-# optional network proxy, set if to be used, otherwise set to ''
-proxy_url=''
-# proxy_url='http://proxy_host:proxy_port'
+hcp_user_credentials='User:Password'
+
 # the following values need to be taken from the IoT Cockpit
 device_id='7e921183-ff7e-499a-80f6-4177603232e0'
 oauth_credentials_for_device='44651a87b9b4bfb124cde946a3fdb53'
 
-message_type_id_From_device='207da5140d9a13273bdb'
-message_type_id_To_device='a920dcd011ca1b4b0603'
+message_type_id_isOn='207da5140d9a13273bdb'
+message_type_id_Distance='a920dcd011ca1b4b0603'
 
 # ===== nothing to be changed / configured below this line ===========
