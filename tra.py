@@ -69,7 +69,7 @@ try:
 				r = http.urlopen('POST', url, body=body, headers=headers)
 				print(body)
 				print(r.data)
-				lidCoverSendMEssage0= False
+				lidCoverSendMessage0= False
 			time.sleep(LOOP_SAMPLING_TIME)		
 			GPIO.output(TRIG, True)
 			time.sleep(0.00001)
@@ -90,12 +90,17 @@ try:
 			print(body)
 			print(r.data)
 			if currentDistance < 50:
+			    GPIO.output(alarmOut,True)
+			else:
 			    GPIO.output(alarmOut,False)
 		else:
 			if(lidCoverSendMessage1 == True):
-				timestamp= time.time()	
-				body= '{"mode":"async", "messageType":"' + str(config.message_type_id_isOpen) + '", "messages":[{"timestamp":' + str(timestamp) + '"'+ ', "isOpen": 1 }]}'
+				timestamp= int(time.time())	
+				body= '{"mode":"async", "messageType":"' + str(config.message_type_id_isOpen) + '", "messages":[{"timestamp":' + '"' + str(timestamp) + '"'+ ', "isOpen": 1 }]}'
 				r = http.urlopen('POST', url, body=body, headers=headers)
-				lidCoverSendMEssage1= False
+				lidCoverSendMessage1= False
+				lidCoverSendMessage0= True
+				print(body)
+				print(r.data)
 except KeyboardInterrupt: 
 		GPIO.cleanup()
