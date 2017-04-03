@@ -14,7 +14,8 @@ http = urllib3.PoolManager()
 headers = urllib3.util.make_headers(user_agent=None)
 headers['Authorization'] = 'Bearer ' + config.oauth_credentials_for_device
 headers['Content-Type'] = 'application/json;charset=utf-8'
-url='https://iotmms' + config.hcp_account_id + config.hcp_landscape_host + '/com.sap.iotservices.mms/v1/api/http/data/' + str(config.device_id)
+url='https://iotmms' + config.hcp_account_id + config.hcp_landscape_host + '/com.sap.iotservices.mms/v1/api/http/data/'
+	+ str(config.device_id)
 
 
 '''****************************************************************************************
@@ -54,10 +55,11 @@ distanceRecordedTime = 0
 criticalLevelReachedTime = 0
 currentDistance = 0
 notificationSentTime = 0
-
 LOOP_SAMPLING_TIME = 2
 CRITICAL_DISTANCE = 100
 NOTIFICATION_TIME_DELAY = 15
+lidCoverSendMessage0 = True
+lidCoverSendMessage1 = True
 
 
 
@@ -67,6 +69,12 @@ try:
 	ultrasonicSensorInit()
 	while 1:
 		if GPIO.input(LIDCOVER) == 0:
+			if(lidCoverSendMessage0 == True):
+				lidCoverSendMessage1 = True
+				timestamp= time.time()
+				body= '{"mode":"async", "messageType":"' + str(config.message_type_id_isOpen) + '", "messages":[{"timestamp":' + str(timestamp) + '"'+ ', "isOpen": False }]}'
+				r = http.urlopen('POST', url, body=body, headers=headers)
+				lidCoverSendMEssage0= False
 			time.sleep(LOOP_SAMPLING_TIME)		
 			GPIO.output(TRIG, True)
 			time.sleep(0.00001)
@@ -81,11 +89,16 @@ try:
 			l_distance = pulse_duration * 17150
 			l_distance = round(l_distance, 2)
 			currentDistance = l_distance
-			timestamp= time.time()
-			print(currentDistance)
-			body= '{"mode":"async", "messageType":"' + str(config.message_type_id_From_device) + '", "messages":[{"timestamp":' + str(timestamp) + '"'+ ', "distance":"' + str(l_distance) + '"'+ ', "ID":"' + str(1) +'"}]}'
+			timestamp= time.time()			
+			body= '{"mode":"async", "messageType":"' + str(config.message_type_id_From_device) + '", "messages":[{"timestamp":' + str(timestamp) + '"'+ ', "distance":"' + str(l_distance) + '"}]}'
 			r = http.urlopen('POST', url, body=body, headers=headers)
 			if currentDistance < 50:
-			    print("cuidado")
+			    GPIO.output(alarmOut,False)
+		else:
+			if(lidCoverSendMessage1 == True):
+				timestamp= time.time()
+				body= '{"mode":"async", "messageType":"' + str(config.message_type_id_isOpen) + '", "messages":[{"timestamp":' + str(timestamp) + '"'+ ', "isOpen": True }]}'
+				r = http.urlopen('POST', url, body=body, headers=headers)
+				lidCoverSendMEssage1= False
 except KeyboardInterrupt: 
 		GPIO.cleanup()
